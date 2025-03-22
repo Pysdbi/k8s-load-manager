@@ -1,0 +1,66 @@
+@startuml classes_diagram.puml
+' Диаграмма классов для ASO (Auto Scaling Operator)
+
+' Основные интерфейсы
+interface MetricsMonitor {
+  +CollectMetrics() []Metric
+}
+
+interface ScalingModule {
+  +AnalyzeMetrics([]Metric) ScalingDecision
+  +ApplyScaling(ScalingDecision) error
+}
+
+interface NotificationSystem {
+  +SendScalingNotification(ScalingEvent)
+}
+
+' Основной класс оператора
+class AutoScalingOperator {
+  -metricsMonitor MetricsMonitor
+  -scalingModule ScalingModule
+  -notificationSystem NotificationSystem
+  -stopChan chan struct{}
+  +NewAutoScalingOperator(\n\
+    MetricsMonitor,\n\
+    ScalingModule,\n\
+    NotificationSystem\n ) *AutoScalingOperator
+  +Run()
+  +Stop()
+}
+
+' Конфигурация оператора
+class OperatorConfig {
+  -scalingRules []ScalingRule
+  -notificationConfig NotificationConfig
+  -metricsConfig MetricsConfig
+}
+
+' Реализации интерфейсов
+class SimpleMetricsMonitor {
+  +CollectMetrics() []Metric
+}
+
+class SimpleScalingModule {
+  +AnalyzeMetrics([]Metric) ScalingDecision
+  +ApplyScaling(ScalingDecision) error
+}
+
+class SimpleNotificationSystem {
+  +SendScalingNotification(ScalingEvent)
+}
+
+' Связи между классами
+AutoScalingOperator --> MetricsMonitor : "uses"
+AutoScalingOperator --> ScalingModule : "uses"
+AutoScalingOperator --> NotificationSystem : "uses"
+
+OperatorConfig --> SimpleMetricsMonitor : "configures"
+OperatorConfig --> SimpleScalingModule : "configures"
+OperatorConfig --> SimpleNotificationSystem : "configures"
+
+SimpleMetricsMonitor ..|> MetricsMonitor : "implements"
+SimpleScalingModule ..|> ScalingModule : "implements"
+SimpleNotificationSystem ..|> NotificationSystem : "implements"
+
+@enduml

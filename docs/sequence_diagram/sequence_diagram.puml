@@ -1,0 +1,48 @@
+@startuml sequence_diagram.puml
+' Диаграмма последовательности для Kubernetes оператора адаптивного масштабирования
+
+actor "SR Engineer" as SRE
+participant "k8s" as K8S
+participant "AdaptiveScaling\nOperator" as ASO
+participant "Metrics\nMonitor" as MM
+participant "Scaling\nModule" as SM
+participant "Notification\nSystem" as NS
+participant "Operator\nConfig" as CFG
+
+' Инициализация
+SRE -> K8S : Запуск оператора
+K8S -> ASO : Initialize()
+ASO -> CFG : LoadFromCRD()
+CFG -> MM : Конфигурация метрик
+CFG -> SM : Конфигурация правил масштабирования
+CFG -> NS : Конфигурация уведомлений
+
+' Запуск оператора
+K8S -> ASO : Run()
+
+' Мониторинг метрик
+loop Периодически
+    ASO -> MM : CollectMetrics()
+    activate ASO #lightgray
+    MM --> ASO : []Metric
+    note right: Сбор CPU, RAM,\nколичества запросов
+
+    ' Анализ и принятие решения
+    ASO -> SM : AnalyzeMetrics(metrics)
+    SM --> ASO : ScalingDecision
+    note right: Анализ на основе\nправил масштабирования
+
+    ' Применение масштабирования
+    alt Требуется масштабирование
+        ASO -> SM : ApplyScaling(decision)
+        SM -> SM  : ValidateState()
+        SM -> K8S : ApplyState()
+        deactivate ASO
+        
+        ' Уведомления
+        ASO -> NS : SendScalingNotification(event)
+        NS -> NS : SendAlert(alert)
+    end
+end
+
+@enduml
