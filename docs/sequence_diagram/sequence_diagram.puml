@@ -11,11 +11,17 @@ participant "Operator\nConfig" as CFG
 
 ' Инициализация
 SRE -> K8S : Запуск оператора
-K8S -> ASO : Initialize()
+K8S -> ASO ++: Initialize()
 ASO -> CFG : LoadFromCRD()
-CFG -> MM : Конфигурация метрик
-CFG -> SM : Конфигурация правил масштабирования
-CFG -> NS : Конфигурация уведомлений
+activate CFG
+CFG -> MM ++: Конфигурация метрик
+MM -> ASO --: Метрики готовы
+CFG -> SM ++: Конфигурация правил масштабирования
+SM -> ASO --: Конфигурация правил масштабирования
+CFG -> NS ++: Конфигурация уведомлений
+deactivate CFG
+NS -> ASO --: Конфигурация уведомлений
+ASO -> K8S --: Initialized
 
 ' Запуск оператора
 K8S -> ASO : Run()
