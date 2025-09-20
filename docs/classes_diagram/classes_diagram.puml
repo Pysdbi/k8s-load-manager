@@ -36,6 +36,20 @@ class OperatorConfig {
   -metricsConfig MetricsConfig
 }
 
+' Конфигурация метрик
+class MetricsConfig {
+  -interval int
+  -thresholds map[string]float64
+  -endpoints []string
+}
+
+' Конфигурация уведомлений
+class NotificationConfig {
+  -channels []string
+  -templates map[string]string
+  -retryCount int
+}
+
 ' Реализации интерфейсов
 class SimpleMetricsMonitor {
   +CollectMetrics() []Metric
@@ -50,17 +64,22 @@ class SimpleNotificationSystem {
   +SendScalingNotification(ScalingEvent)
 }
 
-' Связи между классами
-AutoScalingOperator --> MetricsMonitor : "uses"
-AutoScalingOperator --> ScalingModule : "uses"
-AutoScalingOperator --> NotificationSystem : "uses"
+' Связи
+AutoScalingOperator *-- MetricsMonitor : "композиция"
+AutoScalingOperator *-- ScalingModule : "композиция"
+AutoScalingOperator *-- NotificationSystem : "композиция"
 
-OperatorConfig --> SimpleMetricsMonitor : "configures"
-OperatorConfig --> SimpleScalingModule : "configures"
-OperatorConfig --> SimpleNotificationSystem : "configures"
+OperatorConfig ..> SimpleMetricsMonitor : "зависимость"
+OperatorConfig ..> SimpleScalingModule : "зависимость"
+OperatorConfig ..> SimpleNotificationSystem : "зависимость"
 
-SimpleMetricsMonitor ..|> MetricsMonitor : "implements"
-SimpleScalingModule ..|> ScalingModule : "implements"
-SimpleNotificationSystem ..|> NotificationSystem : "implements"
+SimpleMetricsMonitor ..|> MetricsMonitor : "реализация"
+SimpleScalingModule ..|> ScalingModule : "реализация"
+SimpleNotificationSystem ..|> NotificationSystem : "реализация"
+
+OperatorConfig --> AutoScalingOperator : "ассоциация"
+
+MetricsConfig --|> OperatorConfig : "наследование"
+NotificationConfig --|> OperatorConfig : "наследование"
 
 @enduml
